@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>口子查询系统后台</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        height: 40px;
+        border-bottom: 1px solid #e1e1e1;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+      }
+      .title {
+        flex: 1;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 40px;
+      }
+      .header a {
+        text-decoration: none;
+        color: #3c3c3c;
+        margin-right: 20px;
+      }
+      .username {
+        width: 150px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+      .main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .create-code form {
+        margin-bottom: 30px;
+      }
+      .create-code input {
+        outline: none;
+      }
+      .create-code .count {
+        outline: none;
+        padding-left: 10px;
+        height: 30px;
+        width: 120px;
+        border: 1px solid #e9eaea;
+      }
+      .create-code .count::placeholder {
+        color: #999999;
+      }
+      .create-code .create {
+        height: 30px;
+        padding: 0 20px;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        background-color: #ff7066;
+        border-radius: 5px;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 30px;
+        font-weight: 400;
+      }
+      .code-show {
+        color: #666666;
+        width: 900px;
+        min-height: 300px;
+      }
+      .code-show p {
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      table,
+      table tr th,
+      table tr td {
+        border: 1px solid #e1e1e1;
+      }
+      table {
+        width: 100%;
+        padding: 0 30px;
+        min-height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-collapse: collapse;
+      }
+      .footer {
+        height: 40px;
+        border-top: 1px solid #e1e1e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #999999;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <a href="/" class="title">
+        口子查询系统后台
+      </a>
+      <div class="username">
+        <span>{{ username }}</span>
+        <a href="/logout" class="logout">退出登录</a>
+      </div>
+    </header>
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">© 2019 http://www.xxx.com 版权所有</footer>
+  </body>
+</html>

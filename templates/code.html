@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+<br />
+{% block content %}
+<div class="code-show">
+  <p>最新创建的查询码：{{ code }}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>名字</th>
+        <th>手机号</th>
+        <th>查询码</th>
+        <th>生成时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in list %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.phone }}</td>
+        <td>{{ item.code }}</td>
+        <td>{{ item.date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

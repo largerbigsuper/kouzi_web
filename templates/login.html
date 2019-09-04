@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #2f3336;
+      }
+      .login {
+        width: 300px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .login label {
+        font-size: 14px;
+        line-height: 20px;
+        color: #666666;
+      }
+      .login input {
+        outline: none;
+        height: 20px;
+        width: 120px;
+        border: 1px solid #e9eaea;
+        padding-left: 10px;
+        color: #666666;
+      }
+      .btn {
+        display: flex;
+        justify-content: center;
+      }
+      .submit {
+        outline: none;
+        border: none;
+        cursor: pointer;
+        height: 30px;
+        width: 120px;
+        background-color: #ff7066;
+        padding: 0 10px;
+        font-size: 14px;
+        border-radius: 4px;
+        color: #ffffff;
+        font-weight: 400;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login">
+      <form action="/login" method="post">
+        <label for="">账号：</label>
+        <input type="text" name="username" /><br /><br />
+        <label for="">密码：</label>
+        <input type="text" name="password" /><br /><br />
+        <span class="btn">
+          <button type="submit" class="submit">登录</button>
+        </span>
+      </form>
+    </div>
+  </body>
+</html>

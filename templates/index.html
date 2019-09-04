@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+<br />
+{% block content %}
+<div class="create-code">
+  <form action="/create_code" method="post">
+    <input
+      type="text"
+      name="count"
+      class="count"
+      placeholder="请输入查询码次数"
+    />
+    <input type="text" name="name" class="count" placeholder="请输入名字" />
+    <input
+      type="text"
+      name="phone"
+      class="count"
+      placeholder="请输入电话号码"
+    />
+    <button type="submit" class="create">创建查询码</button>
+  </form>
+  <form action="/create_ad" method="post" enctype="multipart/form-data">
+    <input
+      type="text"
+      name="ad_link"
+      class="count"
+      placeholder="请输入广告链接"
+    />
+    <input
+      type="file"
+      size="30"
+      name="ad_banner"
+      placeholder="请上传广告图片"
+    />
+    <button type="submit" class="create">创建广告</button>
+  </form>
+</div>
+{% endblock %}
