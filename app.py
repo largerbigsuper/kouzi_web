@@ -81,7 +81,7 @@ def codeList():
     # 每页几条数据
     page_size = int(request.args.get('pageSize', 10))
     # 总页数查询
-    total = db['auth_code'].count()
+    total = int(db['auth_code'].count_documents({}))
     # 计算总页数
     if total % page_size > 0:
         total_page = int(total / page_size + 1)
@@ -101,6 +101,98 @@ def codeList():
     results['total_page'] = total_page
     results['data'] = data
     return jsonify({'code': 0, 'data': results})
+
+# 后台获取指定查询码查询的产品列表
+@app.route('/productByCodeList', methods=['GET'])
+def productByCodeList():
+    # 查询码
+    code = str(request.values.get('code'))
+    reducer = """
+        function(obj, prev) {
+            prev.count++;
+        }
+    """
+    results = {}
+    data = []
+    # 聚合查询
+    for item in db['history'].group(['name'], {'code': code}, {'count': 0}, reducer):
+        isCheck = 0
+        pick = int(db['product_code'].count_documents({'code': code, 'product': item['name']}))
+        if(pick > 0):
+            isCheck = 1
+
+        productCodeObj = {
+            'name': item['name'],
+            'count': item['count'],
+            'isCheck': isCheck
+        }
+        data.append(productCodeObj)
+
+    results['data'] = data
+    return jsonify({'code': 0, 'data': results})
+
+# 后台创建监控查询码及产品名关联关系
+@app.route('/bindProductAndCode', methods=['GET'])
+def bindProductAndCode():
+    # 查询码
+    code = str(request.values.get('code'))
+    # 产品名称
+    product = str(request.values.get('product'))
+
+    count = int(db['product_code'].count_documents({'code': code}))
+    if(count > 3):
+        return jsonify({'code': 99, 'desc': '最多监控3个产品'})
+
+    queryObj = db['product_code'].find_one({'code': code, 'product': product})
+    if(queryObj is not None):
+        return jsonify({'code': 0, 'desc': '请求成功'})
+
+    product_code = {
+        'code': code,
+        'product': product
+    }
+    db['product_code'].insert_one(product_code)
+
+    return jsonify({'code': 0, 'desc': '请求成功'})
+
+# 后台获取监控查询码及产品名关联列表
+@app.route('/getProductAndCodeList', methods=['GET'])
+def getProductAndCodeList():
+    # 当前在第几页
+    index = int(request.args.get('index', 1))
+    # 每页几条数据
+    page_size = int(request.args.get('pageSize', 10))
+    # 总页数查询
+    total = int(db['product_code'].count_documents({}))
+    # 计算总页数
+    if total % page_size > 0:
+        total_page = int(total / page_size + 1)
+    else:
+        total_page = int(total / page_size)
+
+    results = {}
+    data = []
+    # 分页查询
+    for item in db['product_code'].find() \
+            .sort([('_id', pymongo.DESCENDING)]) \
+            .skip(page_size*(index-1)).limit(page_size):
+        item['_id'] = str(item['_id'])
+        data.append(item)
+
+    results['total'] = total
+    results['total_page'] = total_page
+    results['data'] = data
+    return jsonify({'code': 0, 'data': results})
+
+# 后台删除监控查询码及产品名关联关系
+@app.route('/delProductAndCode', methods=['GET'])
+def delProductAndCode():
+    # 查询码
+    code = str(request.values.get('code'))
+    # 产品名称
+    product = str(request.values.get('product'))
+    db['product_code'].find_one_and_delete({'code': code, 'product': product})
+    return jsonify({'code': 0, 'desc': '请求成功'})
 
 # 编辑查询码可查询次数
 @app.route('/editCodeQueryNum')
@@ -255,8 +347,8 @@ def getQueryCount():
 
     ctime = time.time()
     ctime = ctime - ctime % 86400
-    data['todayCount'] = db['history'].find({'time': {'$gte': ctime}}).count()
-    data['totalCount'] = db['history'].count()
+    data['todayCount'] = db['history'].count_documents({'time': {'$gte': ctime}})
+    data['totalCount'] = db['history'].count_documents({})
     return jsonify({'code': 0, 'desc': '请求成功', 'data': data})
 
 # 管理后台查询历史记录
@@ -274,9 +366,9 @@ def getQueryHistory():
     # 总页数查询
     total = 0
     if query_type == 0:
-        total = db['history'].count()
+        total = db['history'].count_documents({})
     else:
-        total = db['history'].find({'time': {'$gte': ctime}}).count()
+        total = db['history'].count_documents({'time': {'$gte': ctime}})
     # 计算总页数
     if total % page_size > 0:
         total_page = int(total/page_size + 1)
@@ -373,7 +465,7 @@ def history():
 @app.route('/api/v1/ad')
 def ad_api():
     data = []
-    for item in db['ad'].find({}):
+    for item in db['ad'].find():
         del item['_id']
         data.append(item)
     if len(data) > 0:
@@ -419,7 +511,7 @@ def hhkUserList():
     # 每页几条数据
     page_size = int(request.args.get('pageSize', 10))
     # 总页数查询
-    total = db['hhk_user_info'].find({}).count()
+    total = int(db['hhk_user_info'].count_documents({}))
     # 计算总页数
     if total % page_size > 0:
         total_page = int(total/page_size + 1)
@@ -461,6 +553,28 @@ def download():
 def clean():
     db['hhk_user_info'].drop()
     return jsonify({'code': 0, 'desc': '清除成功'})
+
+# 监控产品是否有新的泄露源
+@app.route('/checkProduct', methods=['GET'])
+def checkProduct():
+    try:
+        for item in db['product_code'].find():
+            queryHistory = db['history'].find({'code': item['code'], 'name': item['product']}).sort(
+                [('time', pymongo.DESCENDING)]).limit(1)
+            for obj in queryHistory:
+                historyCount = len(obj['data'])
+                print('historyCount : '+str(historyCount))
+                nowCount = db['kouzi_crawler'].count_documents({'app_name': re.compile(item['product'])})
+                print('nowCount : '+str(nowCount))
+                if(nowCount > historyCount):
+                    # 发送查询码注册短信通知
+                    authCode = db['auth_code'].find_one({'code': item['code']})
+                    print('tel : '+str(authCode['phone'])+'  '+str(item['product']))
+                    # sendsms.sendUrlChange(authCode['phone'], item['product'])
+        return jsonify({'code': 0, 'desc': '请求成功'})
+    except ValueError as e:
+        print(e)
+        return jsonify({'code': 1, 'desc': '请求异常'})
 
 
 if(__name__ == "__main__"):
