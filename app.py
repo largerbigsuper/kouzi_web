@@ -117,7 +117,8 @@ def productByCodeList():
     # 聚合查询
     for item in db['history'].group(['name'], {'code': code}, {'count': 0}, reducer):
         isCheck = 0
-        pick = int(db['product_code'].count_documents({'code': code, 'product': item['name']}))
+        pick = int(db['product_code'].count_documents(
+            {'code': code, 'product': item['name']}))
         if(pick > 0):
             isCheck = 1
 
@@ -347,7 +348,8 @@ def getQueryCount():
 
     ctime = time.time()
     ctime = ctime - ctime % 86400
-    data['todayCount'] = db['history'].count_documents({'time': {'$gte': ctime}})
+    data['todayCount'] = db['history'].count_documents(
+        {'time': {'$gte': ctime}})
     data['totalCount'] = db['history'].count_documents({})
     return jsonify({'code': 0, 'desc': '请求成功', 'data': data})
 
@@ -559,18 +561,29 @@ def clean():
 def checkProduct():
     try:
         for item in db['product_code'].find():
-            queryHistory = db['history'].find({'code': item['code'], 'name': item['product']}).sort(
+            productName = str(item['product'])
+            code = str(item['code'])
+            queryHistory = db['history'].find({'code': code, 'name': productName}).sort(
                 [('time', pymongo.DESCENDING)]).limit(1)
             for obj in queryHistory:
                 historyCount = len(obj['data'])
                 print('historyCount : '+str(historyCount))
-                nowCount = db['kouzi_crawler'].count_documents({'app_name': re.compile(item['product'])})
+                nowCount = db['kouzi_crawler'].count_documents(
+                    {'app_name': re.compile(productName)})
                 print('nowCount : '+str(nowCount))
                 if(nowCount > historyCount):
                     # 发送查询码注册短信通知
-                    authCode = db['auth_code'].find_one({'code': item['code']})
-                    print('tel : '+str(authCode['phone'])+'  '+str(item['product']))
-                    # sendsms.sendUrlChange(authCode['phone'], item['product'])
+                    authCode = db['auth_code'].find_one({'code': code})
+                    phone = str(authCode['phone'])
+                    print('tel : '+phone+'  '+productName)
+                    sendsms.sendUrlChangeSms(phone, productName)
+                    check_product_msg = {
+                        'code': code,
+                        'product': productName,
+                        'tel': phone,
+                        'time': time.time()
+                    }
+                    db['check_product_msg'].insert_one(check_product_msg)
         return jsonify({'code': 0, 'desc': '请求成功'})
     except ValueError as e:
         print(e)

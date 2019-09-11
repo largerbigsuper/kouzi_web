@@ -33,7 +33,7 @@ def sendAddAuthCodeSms(username, tel, code, count):
     print(str(response, encoding='utf-8'))
 
 
-def sendUrlChange(tel, product):
+def sendUrlChangeSms(tel, product):
     client = AcsClient('LTAI2D5XlcASSsE5',
                        'iWZlAtwSbgNeQ1Qbry1ZDekqmgL6QA', 'default')
 
