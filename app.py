@@ -8,7 +8,6 @@ import sendsms
 import re
 import json
 import urllib
-import downloadfile
 from flask import Flask, session, redirect, url_for, \
     request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -29,7 +28,7 @@ db = client[MONGO_DB_NAME]
 
 def random_code():
     # 查询码生成
-    code = ''.join(random.sample(string.ascii_letters + string.digits, 4))
+    code = ''.join(random.sample(string.ascii_lowercase + string.digits, 4))
     return code
 
 # 拦截器
@@ -425,7 +424,7 @@ def search():
     auth = db['auth_code'].find_one({'code': code})
     if(auth is not None and auth['count'] > 0):
         results = []
-        for item in db['kouzi_crawler'].find({'app_name': re.compile(name)}):
+        for item in db['kouzi_crawler'].find({'app_name': re.compile(name)}).sort('-insert_at'):
             del item['_id']
             results.append(item)
         history = {
@@ -504,57 +503,6 @@ def addhhkadmin():
             return jsonify({'code': 0, 'desc': '请求成功'})
     except ValueError as e:
         return jsonify({'code': 1, 'desc': '请求异常: ' + str(e)})
-
-# 后台获取新希望用户列表
-@app.route('/hhkUserList', methods=['GET'])
-def hhkUserList():
-    # 当前在第几页
-    index = int(request.args.get('index', 1))
-    # 每页几条数据
-    page_size = int(request.args.get('pageSize', 10))
-    # 总页数查询
-    total = int(db['hhk_user_info'].count_documents({}))
-    # 计算总页数
-    if total % page_size > 0:
-        total_page = int(total/page_size + 1)
-    else:
-        total_page = int(total/page_size)
-
-    results = {}
-    data = []
-    # 分页查询
-    for item in db['hhk_user_info'].find() \
-            .sort([('id', pymongo.DESCENDING)]) \
-            .skip(page_size*(index-1)).limit(page_size):
-        item['_id'] = str(item['_id'])
-        del item['idNo']
-        del item['name']
-        data.append(item)
-
-    results['total'] = total
-    results['total_page'] = total_page
-    results['data'] = data
-    return jsonify({'code': 0, 'data': results})
-
-# 导出文件
-@app.route('/download', methods=['GET'])
-def download():
-    phoneList = []
-    # 获取全部数据
-    for item in db['hhk_user_info'].find() \
-            .sort([('id', pymongo.DESCENDING)]):
-        phoneList.append(item['phone'])
-    # 调用创建execl方法
-    downloadfile.createExcel(phoneList)
-    if os.path.isfile(os.path.join(r'static/upload', 'users.xls')):
-        return send_from_directory(r'static/upload', 'users.xls',
-                                   as_attachment=True)
-
-# 导出文件
-@app.route('/clean', methods=['GET'])
-def clean():
-    db['hhk_user_info'].drop()
-    return jsonify({'code': 0, 'desc': '清除成功'})
 
 # 监控产品是否有新的泄露源
 @app.route('/checkProduct', methods=['GET'])
