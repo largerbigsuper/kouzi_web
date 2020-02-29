@@ -59,7 +59,8 @@ def create_code():
                 "total": count,
                 "name": name,
                 "phone": phone,
-                "date": date
+                "date": date,
+                'last_query': ''
             }
             db['auth_code'].update_one(
                 {'code': code, 'name': name, 'phone': 'phone'},
@@ -435,8 +436,9 @@ def search():
             'data': results
         }
         db['history'].insert_one(history)
+        last_query = time.strftime("%Y-%m-%d %H:%M:%S", time.time())
         db['auth_code'].update_one(
-            {'code': code}, {"$set": {'count': auth['count']-1}})
+            {'code': code}, {"$set": {'count': auth['count']-1, 'last_query':last_query }})
         del history['_id']
         return jsonify({'code': 0, 'data': history})
     else:

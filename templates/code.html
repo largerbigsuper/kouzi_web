@@ -10,6 +10,7 @@
         <th>手机号</th>
         <th>查询码</th>
         <th>生成时间</th>
+        <th>最后查询时间</th>
       </tr>
     </thead>
     <tbody>
@@ -19,6 +20,7 @@
         <td>{{ item.phone }}</td>
         <td>{{ item.code }}</td>
         <td>{{ item.date }}</td>
+        <td>{{ item.last_query }}</td>
       </tr>
       {% endfor %}
     </tbody>

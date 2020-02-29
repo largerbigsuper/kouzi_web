@@ -1,3 +1,7 @@
 Flask==1.0.3
 Flask-Cors==3.0.8
 pymongo==3.8.0
+aliyun-python-sdk-core==2.13.14
+
+gevent==1.4.0
+greenlet==0.4.15
